@@ -232,9 +232,9 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
                                  width: anchor.width, height: anchor.height)
             let onScreen = window.convertToScreen(flipped)
             let gap: CGFloat = 8
-            var x = window.frame.minX - panel.frame.width - gap // left of the popover
-            if let screen = window.screen, x < screen.visibleFrame.minX {
-                x = window.frame.maxX + gap // no room: right of the popover
+            var x = window.frame.maxX + gap // right of the popover
+            if let screen = window.screen, x + panel.frame.width > screen.visibleFrame.maxX {
+                x = window.frame.minX - panel.frame.width - gap // no room: left of the popover
             }
             panel.setFrameTopLeftPoint(NSPoint(x: x, y: onScreen.maxY + 40))
         }
