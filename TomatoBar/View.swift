@@ -75,9 +75,10 @@ private struct DialView: View {
                 let dy = Double(value.location.y - size / 2)
                 var degrees = atan2(dx, -dy) * 180 / .pi // 0 at 12 o'clock, clockwise
                 if degrees < 0 { degrees += 360 }
-                var m = Int((degrees / 6).rounded())
-                if m == 0 { m = lastMinutes > 30 ? 60 : 1 }
-                m = min(max(m, 1), 60)
+                // Snap to 5-minute steps (30° each).
+                var m = Int((degrees / 30).rounded()) * 5
+                if m == 0 { m = lastMinutes > 30 ? 60 : 5 }
+                m = min(max(m, 5), 60)
                 if m != minutes {
                     minutes = m
                     lastMinutes = m
@@ -202,6 +203,7 @@ private struct HistoryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             summaryCard
+                .padding(.bottom, 8)
 
             Text(NSLocalizedString("HistoryView.sessions.label", comment: "Sessions"))
                 .font(sectionFont).foregroundColor(.secondary)
