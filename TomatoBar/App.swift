@@ -17,6 +17,10 @@ enum TBBarIconState {
 private let clockFaceSeconds: TimeInterval = 3600
 
 private let pieSize: CGFloat = 18
+private let capsuleHeight: CGFloat = 21
+private let titleKern: CGFloat = 0.5
+private let titleFont: NSFont =
+    NSFont(name: "DINCondensed-Bold", size: 15.5) ?? NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .semibold)
 
 /// Draws a white disc with a colored wedge for the remaining time, like a kitchen timer:
 /// the wedge starts at 12 o'clock and extends clockwise by `secondsLeft` on a 60-minute face.
@@ -47,17 +51,41 @@ private func drawPie(in rect: NSRect, state: TBBarIconState, secondsLeft: TimeIn
     wedge.fill()
 }
 
-/// Menu bar image: the pie drawn as a 60-minute clock face.
-private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval) -> NSImage {
-    let image = NSImage(size: NSSize(width: pieSize, height: pieSize), flipped: false) { rect in
-        drawPie(in: rect, state: state, secondsLeft: secondsLeft, outlined: true)
+/// Menu bar image: the pie alone, or a capsule in the state color wrapping the pie and the time.
+private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title: String?) -> NSImage {
+    guard let title = title, !title.isEmpty else {
+        let image = NSImage(size: NSSize(width: pieSize, height: pieSize), flipped: false) { rect in
+            drawPie(in: rect, state: state, secondsLeft: secondsLeft, outlined: true)
+            return true
+        }
+        image.isTemplate = false
+        return image
+    }
+
+    let text = NSAttributedString(string: title, attributes: [
+        .font: titleFont, .foregroundColor: NSColor.white, .kern: titleKern,
+    ])
+    let textWidth = text.size().width - titleKern
+    let padding: CGFloat = 1.5
+    let inner = capsuleHeight - padding * 2
+    let gap: CGFloat = 3
+    let width = padding + inner + gap + textWidth + 7
+
+    let image = NSImage(size: NSSize(width: width, height: capsuleHeight), flipped: false) { rect in
+        let capsule = NSBezierPath(roundedRect: rect, xRadius: rect.height / 2, yRadius: rect.height / 2)
+        state.color.setFill()
+        capsule.fill()
+
+        drawPie(in: NSRect(x: padding, y: padding, width: inner, height: inner),
+                state: state, secondsLeft: secondsLeft, outlined: false)
+
+        let baseline = rect.midY - titleFont.capHeight / 2
+        text.draw(at: NSPoint(x: padding + inner + gap, y: baseline + titleFont.descender))
         return true
     }
     image.isTemplate = false
     return image
 }
-
-private let digitFont = NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular)
 
 @main
 struct TBApp: App {
@@ -79,6 +107,7 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
     private var statusBarItem: NSStatusItem?
     private var iconState: TBBarIconState = .idle
     private var iconSecondsLeft: TimeInterval = 0
+    private var iconTitle: String?
     static var shared: TBStatusItem!
 
     func applicationDidFinishLaunching(_: Notification) {
@@ -95,39 +124,27 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
         statusBarItem = NSStatusBar.system.statusItem(
             withLength: NSStatusItem.variableLength
         )
-        statusBarItem?.button?.imagePosition = .imageLeft
+        statusBarItem?.button?.imagePosition = .imageOnly
         setIcon(state: .idle)
         statusBarItem?.button?.action = #selector(TBStatusItem.togglePopover(_:))
-    }
-
-    func setTitle(title: String?) {
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 0.9
-        paragraphStyle.alignment = NSTextAlignment.center
-
-        let attributedTitle = NSAttributedString(
-            string: title != nil ? " \(title!)" : "",
-            attributes: [
-                NSAttributedString.Key.font: digitFont,
-                NSAttributedString.Key.paragraphStyle: paragraphStyle
-            ]
-        )
-        statusBarItem?.button?.attributedTitle = attributedTitle
     }
 
     func setIcon(state: TBBarIconState, secondsLeft: TimeInterval = 0) {
         iconState = state
         iconSecondsLeft = secondsLeft
+        iconTitle = nil
         redrawIcon()
     }
 
-    func setProgress(secondsLeft: TimeInterval) {
+    func update(secondsLeft: TimeInterval, title: String?) {
         iconSecondsLeft = secondsLeft
+        iconTitle = title
         redrawIcon()
     }
 
     private func redrawIcon() {
-        statusBarItem?.button?.image = makeBarIcon(state: iconState, secondsLeft: iconSecondsLeft)
+        let image = makeBarIcon(state: iconState, secondsLeft: iconSecondsLeft, title: iconTitle)
+        statusBarItem?.button?.image = image
     }
 
     func showPopover(_: AnyObject?) {

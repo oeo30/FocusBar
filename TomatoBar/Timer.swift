@@ -122,12 +122,8 @@ class TBTimer: ObservableObject {
     func updateTimeLeft() {
         timeLeftString = timerFormatter.string(from: Date(), to: finishTime)!
         if timer != nil {
-            TBStatusItem.shared.setProgress(secondsLeft: finishTime.timeIntervalSince(Date()))
-        }
-        if timer != nil, showTimerInMenuBar {
-            TBStatusItem.shared.setTitle(title: timeLeftString)
-        } else {
-            TBStatusItem.shared.setTitle(title: nil)
+            TBStatusItem.shared.update(secondsLeft: finishTime.timeIntervalSince(Date()),
+                                       title: showTimerInMenuBar ? timeLeftString : nil)
         }
     }
 
