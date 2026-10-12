@@ -26,4 +26,3 @@
 "HistoryView.minutes" = "%d분";
 "HistoryView.sessions.label" = "세션";
 "HistoryView.empty.label" = "아직 세션이 없어요";
-"HistoryView.week.label" = "이번 주";

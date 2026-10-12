@@ -218,10 +218,6 @@ private struct HistoryView: View {
                     }
                 }
             }
-
-            Text(NSLocalizedString("HistoryView.week.label", comment: "This week"))
-                .font(sectionFont).foregroundColor(.secondary)
-            weekChart
         }
         .padding(.horizontal, 4)
         .onAppear { history.reload() }
@@ -267,27 +263,6 @@ private struct HistoryView: View {
         .overlay(Divider(), alignment: .bottom)
     }
 
-    private var weekChart: some View {
-        let maxSeconds = max(history.weekStudySeconds.max() ?? 0, 60)
-        let calendar = Calendar.current
-        let symbols = calendar.veryShortWeekdaySymbols
-        let first = calendar.firstWeekday - 1
-        return HStack(alignment: .bottom, spacing: 8) {
-            ForEach(0 ..< 7) { i in
-                let isToday = i == history.todayWeekIndex
-                VStack(spacing: 3) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(TBMode.work.color.opacity(isToday ? 1 : 0.3))
-                        .frame(height: max(2, CGFloat(history.weekStudySeconds[i] / maxSeconds) * 36))
-                    Text(symbols[(first + i) % 7])
-                        .font(.system(size: 9))
-                        .foregroundColor(isToday ? .primary : .secondary)
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .frame(height: 50, alignment: .bottom)
-    }
 }
 
 private struct VolumeSlider: View {

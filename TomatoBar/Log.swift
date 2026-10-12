@@ -104,13 +104,15 @@ struct TBSession: Identifiable {
     var duration: TimeInterval { end.timeIntervalSince(start) }
 }
 
+/// Hour at which a new day starts for the history: 06:00 to 05:59 the next morning.
+private let dayStartHour = 6
+/// Sessions shorter than this are not shown or counted.
+private let minimumSessionLength: TimeInterval = 5 * 60
+
 /// Study/rest sessions reconstructed from the transition log.
 class TBHistory: ObservableObject {
     @Published private(set) var todaySessions: [TBSession] = []
     @Published private(set) var todayStudySeconds: TimeInterval = 0
-    /// Study seconds per day of the current week, in calendar order starting at the first weekday.
-    @Published private(set) var weekStudySeconds: [TimeInterval] = Array(repeating: 0, count: 7)
-    @Published private(set) var todayWeekIndex: Int = 0
 
     private struct Entry: Decodable {
         let type: String
@@ -120,23 +122,20 @@ class TBHistory: ObservableObject {
     }
 
     func reload() {
-        let sessions = parseSessions()
-        let calendar = Calendar.current
-        let now = Date()
-
-        let today = sessions.filter { calendar.isDateInToday($0.start) }
+        let dayStart = Self.currentDayStart()
+        let today = parseSessions().filter { $0.start >= dayStart && $0.duration >= minimumSessionLength }
         todaySessions = today.reversed()
         todayStudySeconds = today.filter { $0.mode == .work }.reduce(0) { $0 + $1.duration }
+    }
 
-        var week = Array(repeating: TimeInterval(0), count: 7)
-        if let interval = calendar.dateInterval(of: .weekOfYear, for: now) {
-            for s in sessions where s.mode == .work && interval.contains(s.start) {
-                let day = calendar.dateComponents([.day], from: interval.start, to: s.start).day ?? 0
-                if day >= 0 && day < 7 { week[day] += s.duration }
-            }
-            todayWeekIndex = calendar.dateComponents([.day], from: interval.start, to: now).day ?? 0
+    /// The most recent 06:00 at or before now.
+    private static func currentDayStart(now: Date = Date()) -> Date {
+        let calendar = Calendar.current
+        var start = calendar.date(bySettingHour: dayStartHour, minute: 0, second: 0, of: now)!
+        if start > now {
+            start = calendar.date(byAdding: .day, value: -1, to: start)!
         }
-        weekStudySeconds = week
+        return start
     }
 
     private func parseSessions() -> [TBSession] {

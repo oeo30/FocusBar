@@ -26,4 +26,3 @@
 "HistoryView.minutes" = "%dm";
 "HistoryView.sessions.label" = "Sessions";
 "HistoryView.empty.label" = "No sessions yet";
-"HistoryView.week.label" = "This week";

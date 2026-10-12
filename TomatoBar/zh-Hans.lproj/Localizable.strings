@@ -26,4 +26,3 @@
 "HistoryView.minutes" = "%d分";
 "HistoryView.sessions.label" = "会话";
 "HistoryView.empty.label" = "还没有会话";
-"HistoryView.week.label" = "本周";
