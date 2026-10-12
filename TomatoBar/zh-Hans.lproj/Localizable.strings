@@ -1,10 +1,6 @@
-"SettingsView.shortcut.label" = "快捷键";
-"SettingsView.stopAfterBreak.label" = "在休息后停止";
 "SettingsView.showTimerInMenuBar.label" = "在菜单栏中显示计时器";
 "SettingsView.launchAtLogin.label" = "登录时启动";
-"SoundsView.isWindupEnabled.label" = "发条声";
 "SoundsView.isDingEnabled.label" = "叮";
-"SoundsView.isTickingEnabled.label" = "滴答声";
 "TBPopoverView.start.label" = "开始";
 "TBPopoverView.stop.label" = "停止";
 "TBPopoverView.settings.label" = "设置";
@@ -28,4 +24,3 @@
 "HistoryView.empty.label" = "还没有会话";
 "SettingsView.workColor.label" = "学习颜色";
 "SettingsView.restColor.label" = "休息颜色";
-"SettingsView.resetColors.label" = "恢复默认颜色";

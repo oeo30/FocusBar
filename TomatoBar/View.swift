@@ -7,7 +7,7 @@ extension KeyboardShortcuts.Name {
 }
 
 private let popoverWidth: CGFloat = 240
-private let tabContentHeight: CGFloat = 320
+private let sessionListHeight: CGFloat = 154
 private let dialFont = Font.custom("DINCondensed-Bold", size: 15)
 
 extension TBMode {
@@ -162,8 +162,6 @@ private struct TimerView: View {
                      color: timer.mode.color,
                      remaining: timer.isRunning ? timer.timeLeft / 60 : nil)
 
-            Spacer(minLength: 0)
-
             Button {
                 timer.startStop()
             } label: {
@@ -214,7 +212,8 @@ private struct HistoryView: View {
             if history.todaySessions.isEmpty {
                 Text(NSLocalizedString("HistoryView.empty.label", comment: "No sessions yet"))
                     .font(.system(size: 11)).foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: sessionListHeight)
             } else {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -223,6 +222,7 @@ private struct HistoryView: View {
                         }
                     }
                 }
+                .frame(height: sessionListHeight)
             }
         }
         .padding(.horizontal, 4)
@@ -232,6 +232,7 @@ private struct HistoryView: View {
 
     private var summaryCard: some View {
         let minutes = Int(history.todayStudySeconds / 60)
+        let cardColor = minutes == 0 ? Color(NSColor.systemGray) : TBMode.work.color
         return HStack(spacing: 0) {
             if minutes == 0 {
                 Text(NSLocalizedString("HistoryView.summary.none", comment: "No study yet today"))
@@ -250,7 +251,7 @@ private struct HistoryView: View {
         .frame(height: 52)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(LinearGradient(colors: [TBMode.work.color.opacity(0.85), TBMode.work.color],
+                .fill(LinearGradient(colors: [cardColor.opacity(0.85), cardColor],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
         )
     }
@@ -283,78 +284,81 @@ private struct VolumeSlider: View {
     }
 }
 
+private let swatchColors: [NSColor] = [
+    .systemRed, .systemOrange, .systemYellow, .systemGreen,
+    .systemTeal, .systemBlue, .systemPurple, .systemPink,
+]
+
+/// A row of preset colors; the system color panel does not open reliably from a menu bar popover.
+private struct ColorSwatches: View {
+    let label: String
+    @Binding var color: NSColor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(label)
+            HStack(spacing: 8) {
+                ForEach(swatchColors, id: \.self) { swatch in
+                    let selected = TBTheme.hex(swatch) == TBTheme.hex(color)
+                    Button {
+                        color = swatch
+                    } label: {
+                        Circle()
+                            .fill(Color(swatch))
+                            .frame(width: 18, height: 18)
+                            .overlay(
+                                Circle().strokeBorder(Color.primary.opacity(selected ? 0.9 : 0), lineWidth: 2)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+                Spacer(minLength: 0)
+            }
+        }
+    }
+}
+
 private struct SettingsView: View {
     @EnvironmentObject var timer: TBTimer
     @EnvironmentObject var player: TBPlayer
     @ObservedObject private var theme = TBTheme.shared
     @ObservedObject private var launchAtLogin = LaunchAtLogin.observable
 
-    private var soundColumns = [
-        GridItem(.flexible()),
-        GridItem(.fixed(110))
-    ]
-
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            KeyboardShortcuts.Recorder(for: .startStopTimer) {
-                Text(NSLocalizedString("SettingsView.shortcut.label",
-                                       comment: "Shortcut label"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            Toggle(isOn: $timer.stopAfterBreak) {
-                Text(NSLocalizedString("SettingsView.stopAfterBreak.label",
-                                       comment: "Stop after break label"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }.toggleStyle(.switch)
             Toggle(isOn: $timer.showTimerInMenuBar) {
                 Text(NSLocalizedString("SettingsView.showTimerInMenuBar.label",
                                        comment: "Show timer in menu bar label"))
                     .frame(maxWidth: .infinity, alignment: .leading)
-            }.toggleStyle(.switch)
-                .onChange(of: timer.showTimerInMenuBar) { _ in
-                    if timer.isRunning { timer.updateTimeLeft() }
-                }
+            }
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .onChange(of: timer.showTimerInMenuBar) { _ in
+                if timer.isRunning { timer.updateTimeLeft() }
+            }
             Toggle(isOn: $launchAtLogin.isEnabled) {
                 Text(NSLocalizedString("SettingsView.launchAtLogin.label",
                                        comment: "Launch at login label"))
                     .frame(maxWidth: .infinity, alignment: .leading)
-            }.toggleStyle(.switch)
+            }
+            .toggleStyle(.switch)
+            .controlSize(.small)
 
             Divider().padding(.vertical, 2)
 
-            ColorPicker(selection: Binding(get: { Color(theme.workColor) }, set: { theme.workColor = NSColor($0) }),
-                        supportsOpacity: false) {
-                Text(NSLocalizedString("SettingsView.workColor.label", comment: "Study color label"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            ColorPicker(selection: Binding(get: { Color(theme.restColor) }, set: { theme.restColor = NSColor($0) }),
-                        supportsOpacity: false) {
-                Text(NSLocalizedString("SettingsView.restColor.label", comment: "Rest color label"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            Button {
-                theme.reset()
-            } label: {
-                Text(NSLocalizedString("SettingsView.resetColors.label", comment: "Reset colors"))
-                    .font(.system(size: 11))
-            }
-            .buttonStyle(.link)
+            ColorSwatches(label: NSLocalizedString("SettingsView.workColor.label", comment: "Study color label"),
+                          color: $theme.workColor)
+            ColorSwatches(label: NSLocalizedString("SettingsView.restColor.label", comment: "Rest color label"),
+                          color: $theme.restColor)
 
             Divider().padding(.vertical, 2)
 
-            LazyVGrid(columns: soundColumns, alignment: .leading, spacing: 4) {
-                Text(NSLocalizedString("SoundsView.isWindupEnabled.label",
-                                       comment: "Windup label"))
-                VolumeSlider(volume: $player.windupVolume)
-                Text(NSLocalizedString("SoundsView.isDingEnabled.label",
-                                       comment: "Ding label"))
+            HStack {
+                Text(NSLocalizedString("SoundsView.isDingEnabled.label", comment: "Ding label"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 VolumeSlider(volume: $player.dingVolume)
-                Text(NSLocalizedString("SoundsView.isTickingEnabled.label",
-                                       comment: "Ticking label"))
-                VolumeSlider(volume: $player.tickingVolume)
+                    .frame(width: 110)
             }
-
-            Spacer(minLength: 0)
 
             Divider().padding(.vertical, 2)
 
@@ -382,6 +386,11 @@ private struct SettingsView: View {
         }
         .padding(.horizontal, 4)
     }
+}
+
+private struct PopoverHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 private enum ChildView {
@@ -417,9 +426,12 @@ struct TBPopoverView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: tabContentHeight)
         }
         .padding(12)
         .frame(width: popoverWidth)
+        .background(GeometryReader { proxy in
+            Color.clear.preference(key: PopoverHeightKey.self, value: proxy.size.height)
+        })
+        .onPreferenceChange(PopoverHeightKey.self) { TBStatusItem.shared?.setContentHeight($0) }
     }
 }

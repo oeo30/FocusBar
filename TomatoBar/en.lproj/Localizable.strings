@@ -1,10 +1,6 @@
-"SettingsView.shortcut.label" = "Shortcut";
-"SettingsView.stopAfterBreak.label" = "Stop after break";
 "SettingsView.showTimerInMenuBar.label" = "Show timer in menu bar";
 "SettingsView.launchAtLogin.label" = "Launch at login";
-"SoundsView.isWindupEnabled.label" = "Windup";
 "SoundsView.isDingEnabled.label" = "Ding";
-"SoundsView.isTickingEnabled.label" = "Ticking";
 "TBPopoverView.start.label" = "Start";
 "TBPopoverView.stop.label" = "Stop";
 "TBPopoverView.settings.label" = "Settings";
@@ -28,4 +24,3 @@
 "HistoryView.empty.label" = "No sessions yet";
 "SettingsView.workColor.label" = "Study color";
 "SettingsView.restColor.label" = "Rest color";
-"SettingsView.resetColors.label" = "Reset colors";

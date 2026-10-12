@@ -1,10 +1,6 @@
-"SettingsView.shortcut.label" = "단축키";
-"SettingsView.stopAfterBreak.label" = "휴식 후 중지";
 "SettingsView.showTimerInMenuBar.label" = "메뉴 막대에서 타이머 보기";
 "SettingsView.launchAtLogin.label" = "로그인 후 실행";
-"SoundsView.isWindupEnabled.label" = "Windup";
 "SoundsView.isDingEnabled.label" = "Ding";
-"SoundsView.isTickingEnabled.label" = "Ticking";
 "TBPopoverView.start.label" = "시작";
 "TBPopoverView.stop.label" = "중지";
 "TBPopoverView.settings.label" = "설정";
@@ -28,4 +24,3 @@
 "HistoryView.empty.label" = "아직 세션이 없어요";
 "SettingsView.workColor.label" = "공부 색";
 "SettingsView.restColor.label" = "휴식 색";
-"SettingsView.resetColors.label" = "기본 색으로";

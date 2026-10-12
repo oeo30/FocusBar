@@ -35,18 +35,16 @@ final class TBTheme: ObservableObject {
         mode == .work ? workColor : restColor
     }
 
-    func reset() {
-        workColor = Self.defaultWorkColor
-        restColor = Self.defaultRestColor
+    static func hex(_ color: NSColor) -> String {
+        guard let rgb = color.usingColorSpace(.sRGB) else { return "" }
+        return String(format: "#%02X%02X%02X",
+                      Int(round(rgb.redComponent * 255)),
+                      Int(round(rgb.greenComponent * 255)),
+                      Int(round(rgb.blueComponent * 255)))
     }
 
     private static func save(_ color: NSColor, key: String) {
-        guard let rgb = color.usingColorSpace(.sRGB) else { return }
-        let hex = String(format: "#%02X%02X%02X",
-                         Int(round(rgb.redComponent * 255)),
-                         Int(round(rgb.greenComponent * 255)),
-                         Int(round(rgb.blueComponent * 255)))
-        UserDefaults.standard.set(hex, forKey: key)
+        UserDefaults.standard.set(hex(color), forKey: key)
     }
 
     private static func load(key: String) -> NSColor? {
@@ -151,6 +149,12 @@ struct TBApp: App {
     }
 }
 
+/// NSPopover applies vibrancy to its content, which washes out colors; opt out so the popover
+/// shows the same study/rest colors as the menu bar.
+private final class TBPopoverHostingView<Content: View>: NSHostingView<Content> {
+    override var allowsVibrancy: Bool { false }
+}
+
 class TBStatusItem: NSObject, NSApplicationDelegate {
     private var popover = NSPopover()
     private var statusBarItem: NSStatusItem?
@@ -164,7 +168,7 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
 
         popover.behavior = .transient
         popover.contentViewController = NSViewController()
-        popover.contentViewController?.view = NSHostingView(rootView: view)
+        popover.contentViewController?.view = TBPopoverHostingView(rootView: view)
         if let contentViewController = popover.contentViewController {
             popover.contentSize.height = contentViewController.view.intrinsicContentSize.height
             popover.contentSize.width = 240
@@ -205,6 +209,12 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
             popover.contentViewController?.view.window?.makeKey()
         }
+    }
+
+    /// Resize the popover to fit the active tab.
+    func setContentHeight(_ height: CGFloat) {
+        guard height > 0, abs(popover.contentSize.height - height) > 0.5 else { return }
+        popover.contentSize = NSSize(width: 240, height: height)
     }
 
     func closePopover(_ sender: AnyObject?) {

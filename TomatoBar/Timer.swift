@@ -8,7 +8,6 @@ enum TBMode {
 }
 
 class TBTimer: ObservableObject {
-    @AppStorage("stopAfterBreak") var stopAfterBreak = false
     @AppStorage("showTimerInMenuBar") var showTimerInMenuBar = true
     @AppStorage("workIntervalLength") var workIntervalLength = 25
     @AppStorage("shortRestIntervalLength") var restIntervalLength = 5
@@ -43,11 +42,9 @@ class TBTimer: ObservableObject {
          *   | A                A        |    |
          *   | |                |        |    |
          *   | |                +--------+    |
-         *   | |  timerFired (!stopAfterBreak)|
+         *   | |  timerFired                |
          *   | |           skipRest           |
          *   | |                              |
-         *   | +------------------------------+
-         *   |    timerFired (stopAfterBreak)
          *   |
          *   +-- start/stop (mode == rest) --> rest
          *
@@ -60,12 +57,7 @@ class TBTimer: ObservableObject {
         }
         stateMachine.addRoutes(event: .startStop, transitions: [.work => .idle, .rest => .idle])
         stateMachine.addRoutes(event: .timerFired, transitions: [.work => .rest])
-        stateMachine.addRoutes(event: .timerFired, transitions: [.rest => .idle]) { _ in
-            self.stopAfterBreak
-        }
-        stateMachine.addRoutes(event: .timerFired, transitions: [.rest => .work]) { _ in
-            !self.stopAfterBreak
-        }
+        stateMachine.addRoutes(event: .timerFired, transitions: [.rest => .work])
         stateMachine.addRoutes(event: .skipRest, transitions: [.rest => .work])
 
         /*
@@ -74,7 +66,6 @@ class TBTimer: ObservableObject {
          */
         stateMachine.addAnyHandler(.any => .work, handler: onWorkStart)
         stateMachine.addAnyHandler(.work => .rest, order: 0, handler: onWorkFinish)
-        stateMachine.addAnyHandler(.work => .any, order: 1, handler: onWorkEnd)
         stateMachine.addAnyHandler(.any => .rest, handler: onRestStart)
         stateMachine.addAnyHandler(.rest => .work, handler: onRestFinish)
         stateMachine.addAnyHandler(.any => .idle, handler: onIdleStart)
@@ -210,17 +201,11 @@ class TBTimer: ObservableObject {
     private func onWorkStart(context _: TBStateMachine.Context) {
         mode = .work
         TBStatusItem.shared.setIcon(state: .work, secondsLeft: TimeInterval(workIntervalLength * 60))
-        player.playWindup()
-        player.startTicking()
         startTimer(seconds: workIntervalLength * 60)
     }
 
     private func onWorkFinish(context _: TBStateMachine.Context) {
         player.playDing()
-    }
-
-    private func onWorkEnd(context _: TBStateMachine.Context) {
-        player.stopTicking()
     }
 
     private func onRestStart(context ctx: TBStateMachine.Context) {
@@ -247,12 +232,8 @@ class TBTimer: ObservableObject {
         )
     }
 
-    private func onIdleStart(context ctx: TBStateMachine.Context) {
+    private func onIdleStart(context _: TBStateMachine.Context) {
         stopTimer()
         TBStatusItem.shared.setIcon(state: .idle)
-        if ctx.event == .timerFired {
-            // A finished break: next start should be a study session.
-            mode = .work
-        }
     }
 }
