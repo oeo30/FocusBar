@@ -121,6 +121,9 @@ class TBTimer: ObservableObject {
 
     func updateTimeLeft() {
         timeLeftString = timerFormatter.string(from: Date(), to: finishTime)!
+        if timer != nil {
+            TBStatusItem.shared.setProgress(secondsLeft: finishTime.timeIntervalSince(Date()))
+        }
         if timer != nil, showTimerInMenuBar {
             TBStatusItem.shared.setTitle(title: timeLeftString)
         } else {
@@ -176,7 +179,7 @@ class TBTimer: ObservableObject {
     }
 
     private func onWorkStart(context _: TBStateMachine.Context) {
-        TBStatusItem.shared.setIcon(name: .work)
+        TBStatusItem.shared.setIcon(state: .work, secondsLeft: TimeInterval(workIntervalLength * 60))
         player.playWindup()
         player.startTicking()
         startTimer(seconds: workIntervalLength * 60)
@@ -194,11 +197,11 @@ class TBTimer: ObservableObject {
     private func onRestStart(context _: TBStateMachine.Context) {
         var body = NSLocalizedString("TBTimer.onRestStart.short.body", comment: "Short break body")
         var length = shortRestIntervalLength
-        var imgName = NSImage.Name.shortRest
+        var iconState = TBBarIconState.shortRest
         if consecutiveWorkIntervals >= workIntervalsInSet {
             body = NSLocalizedString("TBTimer.onRestStart.long.body", comment: "Long break body")
             length = longRestIntervalLength
-            imgName = .longRest
+            iconState = .longRest
             consecutiveWorkIntervals = 0
         }
         notificationCenter.send(
@@ -206,7 +209,7 @@ class TBTimer: ObservableObject {
             body: body,
             category: .restStarted
         )
-        TBStatusItem.shared.setIcon(name: imgName)
+        TBStatusItem.shared.setIcon(state: iconState, secondsLeft: TimeInterval(length * 60))
         startTimer(seconds: length * 60)
     }
 
@@ -223,7 +226,7 @@ class TBTimer: ObservableObject {
 
     private func onIdleStart(context _: TBStateMachine.Context) {
         stopTimer()
-        TBStatusItem.shared.setIcon(name: .idle)
+        TBStatusItem.shared.setIcon(state: .idle)
         consecutiveWorkIntervals = 0
     }
 }
