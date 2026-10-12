@@ -18,5 +18,12 @@
 "TBPopoverView.history.label" = "기록";
 "TimerView.work.label" = "공부";
 "TimerView.rest.label" = "휴식";
-"HistoryView.empty.label" = "아직 기록이 없습니다";
 "TBTimer.onRestStart.body" = "휴식을 취할 시간입니다!";
+"HistoryView.summary.prefix" = "오늘 ";
+"HistoryView.summary.suffix" = " 공부했어요";
+"HistoryView.summary.none" = "오늘은 아직 공부하지 않았어요";
+"HistoryView.hoursMinutes" = "%d시간 %d분";
+"HistoryView.minutes" = "%d분";
+"HistoryView.sessions.label" = "세션";
+"HistoryView.empty.label" = "아직 세션이 없어요";
+"HistoryView.week.label" = "이번 주";

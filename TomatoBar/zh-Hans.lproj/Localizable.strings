@@ -18,5 +18,12 @@
 "TBPopoverView.history.label" = "记录";
 "TimerView.work.label" = "学习";
 "TimerView.rest.label" = "休息";
-"HistoryView.empty.label" = "还没有记录";
 "TBTimer.onRestStart.body" = "休息时间到!";
+"HistoryView.summary.prefix" = "今天学习了 ";
+"HistoryView.summary.suffix" = "";
+"HistoryView.summary.none" = "今天还没有学习";
+"HistoryView.hoursMinutes" = "%d小时 %d分";
+"HistoryView.minutes" = "%d分";
+"HistoryView.sessions.label" = "会话";
+"HistoryView.empty.label" = "还没有会话";
+"HistoryView.week.label" = "本周";

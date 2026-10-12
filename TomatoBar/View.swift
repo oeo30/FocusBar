@@ -179,13 +179,114 @@ private struct TimerView: View {
 }
 
 private struct HistoryView: View {
-    var body: some View {
-        VStack {
-            Spacer()
-            Text(NSLocalizedString("HistoryView.empty.label", comment: "No history yet"))
-                .foregroundColor(.secondary)
-            Spacer()
+    @EnvironmentObject var timer: TBTimer
+    @StateObject private var history = TBHistory()
+
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm"
+        return f
+    }()
+
+    private func durationText(_ seconds: TimeInterval) -> String {
+        let minutes = Int(seconds / 60)
+        if minutes >= 60 {
+            return String(format: NSLocalizedString("HistoryView.hoursMinutes", comment: "2h 5m"),
+                          minutes / 60, minutes % 60)
         }
+        return String(format: NSLocalizedString("HistoryView.minutes", comment: "5m"), minutes)
+    }
+
+    private var sectionFont: Font { .system(size: 10, weight: .medium) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            summaryCard
+
+            Text(NSLocalizedString("HistoryView.sessions.label", comment: "Sessions"))
+                .font(sectionFont).foregroundColor(.secondary)
+            if history.todaySessions.isEmpty {
+                Text(NSLocalizedString("HistoryView.empty.label", comment: "No sessions yet"))
+                    .font(.system(size: 11)).foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        ForEach(history.todaySessions) { session in
+                            sessionRow(session)
+                        }
+                    }
+                }
+            }
+
+            Text(NSLocalizedString("HistoryView.week.label", comment: "This week"))
+                .font(sectionFont).foregroundColor(.secondary)
+            weekChart
+        }
+        .padding(.horizontal, 4)
+        .onAppear { history.reload() }
+        .onChange(of: timer.timer != nil) { _ in history.reload() }
+    }
+
+    private var summaryCard: some View {
+        let minutes = Int(history.todayStudySeconds / 60)
+        return HStack(spacing: 0) {
+            if minutes == 0 {
+                Text(NSLocalizedString("HistoryView.summary.none", comment: "No study yet today"))
+                    .font(.system(size: 13, weight: .semibold))
+            } else {
+                Text(NSLocalizedString("HistoryView.summary.prefix", comment: "Studied "))
+                    .font(.system(size: 13, weight: .semibold))
+                + Text(durationText(history.todayStudySeconds))
+                    .font(.custom("DINCondensed-Bold", size: 26))
+                + Text(NSLocalizedString("HistoryView.summary.suffix", comment: " today"))
+                    .font(.system(size: 13, weight: .semibold))
+            }
+        }
+        .foregroundColor(.white)
+        .frame(maxWidth: .infinity)
+        .frame(height: 52)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(LinearGradient(colors: [TBMode.work.color.opacity(0.85), TBMode.work.color],
+                                     startPoint: .topLeading, endPoint: .bottomTrailing))
+        )
+    }
+
+    private func sessionRow(_ session: TBSession) -> some View {
+        HStack(spacing: 8) {
+            Circle().fill(session.mode.color).frame(width: 6, height: 6)
+            Text("\(Self.timeFormatter.string(from: session.start)) – \(Self.timeFormatter.string(from: session.end))")
+                .font(.system(size: 11).monospacedDigit())
+            Spacer()
+            Text("\(session.mode.label) \(durationText(session.duration))")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(session.mode.color)
+        }
+        .frame(height: 22)
+        .overlay(Divider(), alignment: .bottom)
+    }
+
+    private var weekChart: some View {
+        let maxSeconds = max(history.weekStudySeconds.max() ?? 0, 60)
+        let calendar = Calendar.current
+        let symbols = calendar.veryShortWeekdaySymbols
+        let first = calendar.firstWeekday - 1
+        return HStack(alignment: .bottom, spacing: 8) {
+            ForEach(0 ..< 7) { i in
+                let isToday = i == history.todayWeekIndex
+                VStack(spacing: 3) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(TBMode.work.color.opacity(isToday ? 1 : 0.3))
+                        .frame(height: max(2, CGFloat(history.weekStudySeconds[i] / maxSeconds) * 36))
+                    Text(symbols[(first + i) % 7])
+                        .font(.system(size: 9))
+                        .foregroundColor(isToday ? .primary : .secondary)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .frame(height: 50, alignment: .bottom)
     }
 }
 
@@ -308,7 +409,7 @@ struct TBPopoverView: View {
                 case .timer:
                     TimerView().environmentObject(timer)
                 case .history:
-                    HistoryView()
+                    HistoryView().environmentObject(timer)
                 case .settings:
                     SettingsView().environmentObject(timer).environmentObject(timer.player)
                 }

@@ -18,5 +18,12 @@
 "TBPopoverView.history.label" = "History";
 "TimerView.work.label" = "Study";
 "TimerView.rest.label" = "Rest";
-"HistoryView.empty.label" = "No history yet";
 "TBTimer.onRestStart.body" = "It's time for a break!";
+"HistoryView.summary.prefix" = "Studied ";
+"HistoryView.summary.suffix" = " today";
+"HistoryView.summary.none" = "No study yet today";
+"HistoryView.hoursMinutes" = "%dh %dm";
+"HistoryView.minutes" = "%dm";
+"HistoryView.sessions.label" = "Sessions";
+"HistoryView.empty.label" = "No sessions yet";
+"HistoryView.week.label" = "This week";
