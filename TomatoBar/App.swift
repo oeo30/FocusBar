@@ -51,8 +51,12 @@ private func drawPie(in rect: NSRect, state: TBBarIconState, secondsLeft: TimeIn
     wedge.fill()
 }
 
-/// Menu bar image: the pie alone, or a capsule in the state color wrapping the pie and the time.
+/// Menu bar image: the tomato logo while idle, the pie alone, or a capsule in the state color
+/// wrapping the pie and the time.
 private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title: String?) -> NSImage {
+    if state == .idle, let logo = NSImage(named: "BarIconIdle") {
+        return logo
+    }
     guard let title = title, !title.isEmpty else {
         let image = NSImage(size: NSSize(width: pieSize, height: pieSize), flipped: false) { rect in
             drawPie(in: rect, state: state, secondsLeft: secondsLeft, outlined: true)
