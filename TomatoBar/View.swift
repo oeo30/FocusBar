@@ -8,7 +8,7 @@ extension KeyboardShortcuts.Name {
 
 private let popoverWidth: CGFloat = 240
 private let tabContentHeight: CGFloat = 284
-private let dialFont = Font.custom("DINCondensed-Bold", size: 12)
+private let dialFont = Font.custom("DINCondensed-Bold", size: 15)
 
 extension TBMode {
     var color: Color { Color(self == .work ? TBBarIconState.work.color : TBBarIconState.rest.color) }
@@ -27,7 +27,7 @@ private struct DialView: View {
     let remaining: Double?
 
     private let radius: CGFloat = 76
-    private let labelInset: CGFloat = 14
+    private let labelInset: CGFloat = 16
     @State private var lastMinutes = 0
 
     private var isEditable: Bool { remaining == nil }
@@ -57,7 +57,7 @@ private struct DialView: View {
                 let angle = Double(minutes) * 6 * .pi / 180
                 Circle()
                     .fill(Color.white)
-                    .frame(width: 14, height: 14)
+                    .frame(width: 10, height: 10)
                     .shadow(color: Color.black.opacity(0.25), radius: 2, x: 0, y: 1)
                     .offset(x: CGFloat(sin(angle)) * radius, y: -CGFloat(cos(angle)) * radius)
             }
@@ -175,6 +175,7 @@ private struct TimerView: View {
             .buttonStyle(.plain)
             .keyboardShortcut(.defaultAction)
             .padding(.horizontal, 16)
+            .padding(.bottom, 10)
         }
     }
 }
