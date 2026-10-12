@@ -289,29 +289,45 @@ private let swatchColors: [NSColor] = [
     .systemTeal, .systemBlue, .systemPurple, .systemPink,
 ]
 
-/// A row of preset colors; the system color panel does not open reliably from a menu bar popover.
+/// A row of preset colors plus a palette button that opens the system color panel.
 private struct ColorSwatches: View {
     let label: String
-    @Binding var color: NSColor
+    let mode: TBMode
+    @ObservedObject private var theme = TBTheme.shared
+
+    private var current: NSColor { theme.color(for: mode) }
+    private var isPreset: Bool { swatchColors.contains { TBTheme.hex($0) == TBTheme.hex(current) } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(label)
             HStack(spacing: 8) {
                 ForEach(swatchColors, id: \.self) { swatch in
-                    let selected = TBTheme.hex(swatch) == TBTheme.hex(color)
+                    let selected = TBTheme.hex(swatch) == TBTheme.hex(current)
                     Button {
-                        color = swatch
+                        theme.setColor(swatch, for: mode)
                     } label: {
                         Circle()
                             .fill(Color(swatch))
                             .frame(width: 18, height: 18)
-                            .overlay(
-                                Circle().strokeBorder(Color.primary.opacity(selected ? 0.9 : 0), lineWidth: 2)
-                            )
+                            .overlay(Circle().strokeBorder(Color.primary.opacity(selected ? 0.9 : 0), lineWidth: 2))
                     }
                     .buttonStyle(.plain)
                 }
+                Button {
+                    TBStatusItem.shared?.beginColorEditing(for: mode)
+                } label: {
+                    ZStack {
+                        Circle().fill(AngularGradient(
+                            gradient: Gradient(colors: [.red, .yellow, .green, Color(NSColor.systemTeal), .blue, .purple, .red]),
+                            center: .center))
+                        Circle().fill(Color(current)).opacity(isPreset ? 0 : 1)
+                    }
+                    .frame(width: 18, height: 18)
+                        .overlay(Circle().strokeBorder(Color.primary.opacity(isPreset ? 0 : 0.9), lineWidth: 2))
+                }
+                .buttonStyle(.plain)
+                .help(NSLocalizedString("SettingsView.customColor.help", comment: "Pick a custom color"))
                 Spacer(minLength: 0)
             }
         }
@@ -321,11 +337,26 @@ private struct ColorSwatches: View {
 private struct SettingsView: View {
     @EnvironmentObject var timer: TBTimer
     @EnvironmentObject var player: TBPlayer
-    @ObservedObject private var theme = TBTheme.shared
     @ObservedObject private var launchAtLogin = LaunchAtLogin.observable
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            ColorSwatches(label: NSLocalizedString("SettingsView.workColor.label", comment: "Study color label"),
+                          mode: .work)
+            ColorSwatches(label: NSLocalizedString("SettingsView.restColor.label", comment: "Rest color label"),
+                          mode: .rest)
+
+            Divider().padding(.vertical, 2)
+
+            HStack {
+                Text(NSLocalizedString("SoundsView.isDingEnabled.label", comment: "Ding label"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                VolumeSlider(volume: $player.dingVolume)
+                    .frame(width: 110)
+            }
+
+            Divider().padding(.vertical, 2)
+
             Toggle(isOn: $timer.showTimerInMenuBar) {
                 Text(NSLocalizedString("SettingsView.showTimerInMenuBar.label",
                                        comment: "Show timer in menu bar label"))
@@ -343,22 +374,6 @@ private struct SettingsView: View {
             }
             .toggleStyle(.switch)
             .controlSize(.small)
-
-            Divider().padding(.vertical, 2)
-
-            ColorSwatches(label: NSLocalizedString("SettingsView.workColor.label", comment: "Study color label"),
-                          color: $theme.workColor)
-            ColorSwatches(label: NSLocalizedString("SettingsView.restColor.label", comment: "Rest color label"),
-                          color: $theme.restColor)
-
-            Divider().padding(.vertical, 2)
-
-            HStack {
-                Text(NSLocalizedString("SoundsView.isDingEnabled.label", comment: "Ding label"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                VolumeSlider(volume: $player.dingVolume)
-                    .frame(width: 110)
-            }
 
             Divider().padding(.vertical, 2)
 

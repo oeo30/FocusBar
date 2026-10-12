@@ -24,3 +24,4 @@
 "HistoryView.empty.label" = "还没有会话";
 "SettingsView.workColor.label" = "学习颜色";
 "SettingsView.restColor.label" = "休息颜色";
+"SettingsView.customColor.help" = "自定义颜色";

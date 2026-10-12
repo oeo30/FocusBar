@@ -24,3 +24,4 @@
 "HistoryView.empty.label" = "No sessions yet";
 "SettingsView.workColor.label" = "Study color";
 "SettingsView.restColor.label" = "Rest color";
+"SettingsView.customColor.help" = "Pick a custom color";

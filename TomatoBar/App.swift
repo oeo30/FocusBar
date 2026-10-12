@@ -35,6 +35,10 @@ final class TBTheme: ObservableObject {
         mode == .work ? workColor : restColor
     }
 
+    func setColor(_ color: NSColor, for mode: TBMode) {
+        if mode == .work { workColor = color } else { restColor = color }
+    }
+
     static func hex(_ color: NSColor) -> String {
         guard let rgb = color.usingColorSpace(.sRGB) else { return "" }
         return String(format: "#%02X%02X%02X",
@@ -211,6 +215,36 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: Color panel
+
+    private var colorPanelMode: TBMode = .work
+
+    /// Open the system color panel for a study/rest color. The popover is kept open while the
+    /// panel is up (it would otherwise close as soon as the panel takes focus).
+    func beginColorEditing(for mode: TBMode) {
+        colorPanelMode = mode
+        popover.behavior = .semitransient
+        let panel = NSColorPanel.shared
+        panel.showsAlpha = false
+        panel.isContinuous = true
+        panel.color = TBTheme.shared.color(for: mode)
+        panel.setTarget(self)
+        panel.setAction(#selector(colorPanelChanged(_:)))
+        NotificationCenter.default.addObserver(self, selector: #selector(colorPanelClosed(_:)),
+                                               name: NSWindow.willCloseNotification, object: panel)
+        NSApp.activate(ignoringOtherApps: true)
+        panel.orderFront(nil)
+    }
+
+    @objc private func colorPanelChanged(_ sender: NSColorPanel) {
+        TBTheme.shared.setColor(sender.color, for: colorPanelMode)
+    }
+
+    @objc private func colorPanelClosed(_: Notification) {
+        NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: NSColorPanel.shared)
+        popover.behavior = .transient
+    }
+
     /// Resize the popover to fit the active tab.
     func setContentHeight(_ height: CGFloat) {
         guard height > 0, abs(popover.contentSize.height - height) > 0.5 else { return }
@@ -218,6 +252,9 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
     }
 
     func closePopover(_ sender: AnyObject?) {
+        if NSColorPanel.sharedColorPanelExists, NSColorPanel.shared.isVisible {
+            NSColorPanel.shared.close()
+        }
         popover.performClose(sender)
     }
 
