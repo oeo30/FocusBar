@@ -2,13 +2,13 @@ import SwiftUI
 import LaunchAtLogin
 
 enum TBBarIconState {
-    case idle, work, shortRest, longRest
+    case idle, work, rest
 
     var color: NSColor {
         switch self {
         case .idle: return .clear
         case .work: return .systemRed
-        case .shortRest, .longRest: return .systemGreen
+        case .rest: return .systemGreen
         }
     }
 }
