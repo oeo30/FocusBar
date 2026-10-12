@@ -284,52 +284,26 @@ private struct VolumeSlider: View {
     }
 }
 
-private let swatchColors: [NSColor] = [
-    .systemRed, .systemOrange, .systemYellow, .systemGreen,
-    .systemTeal, .systemBlue, .systemPurple, .systemPink,
-]
-
-/// A row of preset colors plus a palette button that opens the system color panel.
-private struct ColorSwatches: View {
+/// Label with a single color well that opens the system color panel.
+private struct ColorRow: View {
     let label: String
     let mode: TBMode
     @ObservedObject private var theme = TBTheme.shared
 
-    private var current: NSColor { theme.color(for: mode) }
-    private var isPreset: Bool { swatchColors.contains { TBTheme.hex($0) == TBTheme.hex(current) } }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        HStack {
             Text(label)
-            HStack(spacing: 8) {
-                ForEach(swatchColors, id: \.self) { swatch in
-                    let selected = TBTheme.hex(swatch) == TBTheme.hex(current)
-                    Button {
-                        theme.setColor(swatch, for: mode)
-                    } label: {
-                        Circle()
-                            .fill(Color(swatch))
-                            .frame(width: 18, height: 18)
-                            .overlay(Circle().strokeBorder(Color.primary.opacity(selected ? 0.9 : 0), lineWidth: 2))
-                    }
-                    .buttonStyle(.plain)
-                }
-                Button {
-                    TBStatusItem.shared?.beginColorEditing(for: mode)
-                } label: {
-                    ZStack {
-                        Circle().fill(AngularGradient(
-                            gradient: Gradient(colors: [.red, .yellow, .green, Color(NSColor.systemTeal), .blue, .purple, .red]),
-                            center: .center))
-                        Circle().fill(Color(current)).opacity(isPreset ? 0 : 1)
-                    }
-                    .frame(width: 18, height: 18)
-                        .overlay(Circle().strokeBorder(Color.primary.opacity(isPreset ? 0 : 0.9), lineWidth: 2))
-                }
-                .buttonStyle(.plain)
-                .help(NSLocalizedString("SettingsView.customColor.help", comment: "Pick a custom color"))
-                Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button {
+                TBStatusItem.shared?.beginColorEditing(for: mode)
+            } label: {
+                Circle()
+                    .fill(Color(theme.color(for: mode)))
+                    .frame(width: 20, height: 20)
+                    .overlay(Circle().strokeBorder(Color.primary.opacity(0.2), lineWidth: 1))
             }
+            .buttonStyle(.plain)
+            .help(NSLocalizedString("SettingsView.customColor.help", comment: "Pick a custom color"))
         }
     }
 }
@@ -341,9 +315,9 @@ private struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ColorSwatches(label: NSLocalizedString("SettingsView.workColor.label", comment: "Study color label"),
+            ColorRow(label: NSLocalizedString("SettingsView.workColor.label", comment: "Study color label"),
                           mode: .work)
-            ColorSwatches(label: NSLocalizedString("SettingsView.restColor.label", comment: "Rest color label"),
+            ColorRow(label: NSLocalizedString("SettingsView.restColor.label", comment: "Rest color label"),
                           mode: .rest)
 
             Divider().padding(.vertical, 2)
