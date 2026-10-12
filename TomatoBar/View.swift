@@ -428,6 +428,8 @@ struct TBPopoverView: View {
         }
         .padding(12)
         .frame(width: popoverWidth)
+        // Opaque backing: the popover's translucent material lets the desktop tint the content.
+        .background(Color(NSColor.windowBackgroundColor))
         .background(GeometryReader { proxy in
             Color.clear.preference(key: PopoverHeightKey.self, value: proxy.size.height)
         })
