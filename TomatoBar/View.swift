@@ -285,22 +285,32 @@ private struct VolumeSlider: View {
 }
 
 /// Label with a single color well that opens the system color panel.
+private struct ColorWellFrameKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
+}
+
 private struct ColorRow: View {
     let label: String
     let mode: TBMode
     @ObservedObject private var theme = TBTheme.shared
+    @State private var wellFrame: CGRect = .zero
 
     var body: some View {
         HStack {
             Text(label)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button {
-                TBStatusItem.shared?.beginColorEditing(for: mode)
+                TBStatusItem.shared?.beginColorEditing(for: mode, anchor: wellFrame)
             } label: {
                 Circle()
                     .fill(Color(theme.color(for: mode)))
                     .frame(width: 20, height: 20)
                     .overlay(Circle().strokeBorder(Color.primary.opacity(0.2), lineWidth: 1))
+                    .background(GeometryReader { proxy in
+                        Color.clear.preference(key: ColorWellFrameKey.self, value: proxy.frame(in: .global))
+                    })
+                    .onPreferenceChange(ColorWellFrameKey.self) { wellFrame = $0 }
             }
             .buttonStyle(.plain)
             .help(NSLocalizedString("SettingsView.customColor.help", comment: "Pick a custom color"))

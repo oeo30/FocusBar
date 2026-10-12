@@ -221,10 +221,23 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
 
     /// Open the system color panel for a study/rest color. The popover is kept open while the
     /// panel is up (it would otherwise close as soon as the panel takes focus).
-    func beginColorEditing(for mode: TBMode) {
+    /// `anchor` is the color well's frame in the popover's SwiftUI global coordinates; the panel is
+    /// placed beside the popover, level with that row.
+    func beginColorEditing(for mode: TBMode, anchor: CGRect) {
         colorPanelMode = mode
         popover.behavior = .semitransient
         let panel = NSColorPanel.shared
+        if let window = popover.contentViewController?.view.window, let content = window.contentView {
+            let flipped = NSRect(x: anchor.minX, y: content.bounds.height - anchor.maxY,
+                                 width: anchor.width, height: anchor.height)
+            let onScreen = window.convertToScreen(flipped)
+            let gap: CGFloat = 8
+            var x = window.frame.minX - panel.frame.width - gap // left of the popover
+            if let screen = window.screen, x < screen.visibleFrame.minX {
+                x = window.frame.maxX + gap // no room: right of the popover
+            }
+            panel.setFrameTopLeftPoint(NSPoint(x: x, y: onScreen.maxY + 40))
+        }
         panel.showsAlpha = false
         panel.isContinuous = true
         panel.color = TBTheme.shared.color(for: mode)
