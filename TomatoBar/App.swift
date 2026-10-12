@@ -7,9 +7,54 @@ enum TBBarIconState {
     var color: NSColor {
         switch self {
         case .idle: return .clear
-        case .work: return .systemRed
-        case .rest: return .systemGreen
+        case .work: return TBTheme.shared.workColor
+        case .rest: return TBTheme.shared.restColor
         }
+    }
+}
+
+/// User-chosen colors for study and rest, stored as sRGB hex in UserDefaults.
+final class TBTheme: ObservableObject {
+    static let shared = TBTheme()
+    static let defaultWorkColor = NSColor.systemRed
+    static let defaultRestColor = NSColor.systemGreen
+
+    @Published var workColor: NSColor {
+        didSet { Self.save(workColor, key: "workColor"); TBStatusItem.shared?.redraw() }
+    }
+    @Published var restColor: NSColor {
+        didSet { Self.save(restColor, key: "restColor"); TBStatusItem.shared?.redraw() }
+    }
+
+    private init() {
+        workColor = Self.load(key: "workColor") ?? Self.defaultWorkColor
+        restColor = Self.load(key: "restColor") ?? Self.defaultRestColor
+    }
+
+    func color(for mode: TBMode) -> NSColor {
+        mode == .work ? workColor : restColor
+    }
+
+    func reset() {
+        workColor = Self.defaultWorkColor
+        restColor = Self.defaultRestColor
+    }
+
+    private static func save(_ color: NSColor, key: String) {
+        guard let rgb = color.usingColorSpace(.sRGB) else { return }
+        let hex = String(format: "#%02X%02X%02X",
+                         Int(round(rgb.redComponent * 255)),
+                         Int(round(rgb.greenComponent * 255)),
+                         Int(round(rgb.blueComponent * 255)))
+        UserDefaults.standard.set(hex, forKey: key)
+    }
+
+    private static func load(key: String) -> NSColor? {
+        guard let hex = UserDefaults.standard.string(forKey: key), hex.count == 7,
+              let value = UInt32(hex.dropFirst(), radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 0xFF) / 255,
+                       green: CGFloat((value >> 8) & 0xFF) / 255,
+                       blue: CGFloat(value & 0xFF) / 255, alpha: 1)
     }
 }
 
@@ -143,6 +188,10 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
     func update(secondsLeft: TimeInterval, title: String?) {
         iconSecondsLeft = secondsLeft
         iconTitle = title
+        redrawIcon()
+    }
+
+    func redraw() {
         redrawIcon()
     }
 

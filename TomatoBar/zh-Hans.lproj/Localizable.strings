@@ -26,3 +26,6 @@
 "HistoryView.minutes" = "%d分";
 "HistoryView.sessions.label" = "会话";
 "HistoryView.empty.label" = "还没有会话";
+"SettingsView.workColor.label" = "学习颜色";
+"SettingsView.restColor.label" = "休息颜色";
+"SettingsView.resetColors.label" = "恢复默认颜色";

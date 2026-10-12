@@ -26,3 +26,6 @@
 "HistoryView.minutes" = "%dm";
 "HistoryView.sessions.label" = "Sessions";
 "HistoryView.empty.label" = "No sessions yet";
+"SettingsView.workColor.label" = "Study color";
+"SettingsView.restColor.label" = "Rest color";
+"SettingsView.resetColors.label" = "Reset colors";

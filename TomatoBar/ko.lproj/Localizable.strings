@@ -26,3 +26,6 @@
 "HistoryView.minutes" = "%d분";
 "HistoryView.sessions.label" = "세션";
 "HistoryView.empty.label" = "아직 세션이 없어요";
+"SettingsView.workColor.label" = "공부 색";
+"SettingsView.restColor.label" = "휴식 색";
+"SettingsView.resetColors.label" = "기본 색으로";

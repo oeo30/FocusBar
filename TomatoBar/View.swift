@@ -7,11 +7,11 @@ extension KeyboardShortcuts.Name {
 }
 
 private let popoverWidth: CGFloat = 240
-private let tabContentHeight: CGFloat = 284
+private let tabContentHeight: CGFloat = 320
 private let dialFont = Font.custom("DINCondensed-Bold", size: 15)
 
 extension TBMode {
-    var color: Color { Color(self == .work ? TBBarIconState.work.color : TBBarIconState.rest.color) }
+    var color: Color { Color(TBTheme.shared.color(for: self)) }
     var label: String {
         self == .work
             ? NSLocalizedString("TimerView.work.label", comment: "Study mode label")
@@ -115,6 +115,7 @@ private struct Wedge: Shape {
 
 private struct ModeToggle: View {
     @EnvironmentObject var timer: TBTimer
+    @ObservedObject private var theme = TBTheme.shared
 
     var body: some View {
         HStack(spacing: 0) {
@@ -144,6 +145,7 @@ private struct ModeToggle: View {
 
 private struct TimerView: View {
     @EnvironmentObject var timer: TBTimer
+    @ObservedObject private var theme = TBTheme.shared
 
     private var startLabel = NSLocalizedString("TBPopoverView.start.label", comment: "Start label")
     private var stopLabel = NSLocalizedString("TBPopoverView.stop.label", comment: "Stop label")
@@ -182,6 +184,7 @@ private struct TimerView: View {
 
 private struct HistoryView: View {
     @EnvironmentObject var timer: TBTimer
+    @ObservedObject private var theme = TBTheme.shared
     @StateObject private var history = TBHistory()
 
     private static let timeFormatter: DateFormatter = {
@@ -283,6 +286,7 @@ private struct VolumeSlider: View {
 private struct SettingsView: View {
     @EnvironmentObject var timer: TBTimer
     @EnvironmentObject var player: TBPlayer
+    @ObservedObject private var theme = TBTheme.shared
     @ObservedObject private var launchAtLogin = LaunchAtLogin.observable
 
     private var soundColumns = [
@@ -315,6 +319,26 @@ private struct SettingsView: View {
                                        comment: "Launch at login label"))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }.toggleStyle(.switch)
+
+            Divider().padding(.vertical, 2)
+
+            ColorPicker(selection: Binding(get: { Color(theme.workColor) }, set: { theme.workColor = NSColor($0) }),
+                        supportsOpacity: false) {
+                Text(NSLocalizedString("SettingsView.workColor.label", comment: "Study color label"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            ColorPicker(selection: Binding(get: { Color(theme.restColor) }, set: { theme.restColor = NSColor($0) }),
+                        supportsOpacity: false) {
+                Text(NSLocalizedString("SettingsView.restColor.label", comment: "Rest color label"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Button {
+                theme.reset()
+            } label: {
+                Text(NSLocalizedString("SettingsView.resetColors.label", comment: "Reset colors"))
+                    .font(.system(size: 11))
+            }
+            .buttonStyle(.link)
 
             Divider().padding(.vertical, 2)
 
