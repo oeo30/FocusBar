@@ -221,6 +221,6 @@ class TBTimer: ObservableObject {
                 category: .restFinished
             )
         }
-        TBStatusItem.shared.setAttention(state: mode == .rest ? .rest : .work, title: mode.label)
+        TBStatusItem.shared.setAttention(state: ctx.fromState == .work ? .work : .rest)
     }
 }

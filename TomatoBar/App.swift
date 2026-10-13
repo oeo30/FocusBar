@@ -100,7 +100,8 @@ private func drawPie(in rect: NSRect, state: TBBarIconState, secondsLeft: TimeIn
 
 /// Menu bar image: the tomato logo while idle, the pie alone, or a capsule in the state color
 /// wrapping the pie and the time.
-private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title: String?) -> NSImage {
+/// `inverted` swaps the capsule to a white fill with colored text and ring, used for blinking.
+private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title: String?, inverted: Bool = false) -> NSImage {
     if state == .idle, let logo = NSImage(named: "BarIconIdle") {
         return logo
     }
@@ -114,7 +115,7 @@ private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title
     }
 
     let text = NSAttributedString(string: title, attributes: [
-        .font: titleFont, .foregroundColor: NSColor.white, .kern: titleKern,
+        .font: titleFont, .foregroundColor: inverted ? state.color : NSColor.white, .kern: titleKern,
     ])
     let textWidth = text.size().width - titleKern
     let padding: CGFloat = 1.5
@@ -124,11 +125,24 @@ private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title
 
     let image = NSImage(size: NSSize(width: width, height: capsuleHeight), flipped: false) { rect in
         let capsule = NSBezierPath(roundedRect: rect, xRadius: rect.height / 2, yRadius: rect.height / 2)
-        state.color.setFill()
-        capsule.fill()
-
-        drawPie(in: NSRect(x: padding, y: padding, width: inner, height: inner),
-                state: state, secondsLeft: secondsLeft, outlined: false)
+        if inverted {
+            NSColor.white.setFill()
+            capsule.fill()
+            let ring = NSBezierPath(roundedRect: rect.insetBy(dx: 0.75, dy: 0.75),
+                                    xRadius: rect.height / 2, yRadius: rect.height / 2)
+            ring.lineWidth = 1.5
+            state.color.setStroke()
+            ring.stroke()
+            // Solid colored disc in place of the pie.
+            let disc = NSBezierPath(ovalIn: NSRect(x: padding + 0.5, y: padding + 0.5, width: inner - 1, height: inner - 1))
+            state.color.setFill()
+            disc.fill()
+        } else {
+            state.color.setFill()
+            capsule.fill()
+            drawPie(in: NSRect(x: padding, y: padding, width: inner, height: inner),
+                    state: state, secondsLeft: secondsLeft, outlined: false)
+        }
 
         let baseline = rect.midY - titleFont.capHeight / 2
         text.draw(at: NSPoint(x: padding + inner + gap, y: baseline + titleFont.descender))
@@ -191,20 +205,20 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
     private var attentionTimer: Timer?
     private var attentionVisible = false
 
-    /// Blink a capsule naming the next interval until the popover opens or a timer starts.
-    func setAttention(state: TBBarIconState, title: String) {
+    /// Blink the finished interval's capsule at 00:00, alternating normal and inverted,
+    /// until the popover opens or a timer starts.
+    func setAttention(state: TBBarIconState) {
         clearAttention()
         iconState = state
         iconSecondsLeft = 0
-        iconTitle = title
+        iconTitle = "00:00"
         attentionVisible = true
         redrawIcon()
-        attentionTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { [weak self] _ in
+        attentionTimer = Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             self.attentionVisible.toggle()
-            self.statusBarItem?.button?.image = self.attentionVisible
-                ? makeBarIcon(state: self.iconState, secondsLeft: 0, title: self.iconTitle)
-                : makeBarIcon(state: .idle, secondsLeft: 0, title: nil)
+            self.statusBarItem?.button?.image = makeBarIcon(state: self.iconState, secondsLeft: 0,
+                                                            title: self.iconTitle, inverted: !self.attentionVisible)
         }
     }
 
