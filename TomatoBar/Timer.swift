@@ -31,23 +31,23 @@ class TBTimer: ObservableObject {
         /*
          * State diagram
          *
-         *                 start/stop
-         *       +--------------+-------------+
-         *       |              |             |
-         *       |  start/stop  |  timerFired |
-         *       V    |         |    |        |
-         * +--------+ |  +--------+  | +--------+
-         * | idle   |--->| work   |--->| rest   |
-         * +--------+    +--------+    +--------+
-         *   | A                A        |    |
-         *   | |                |        |    |
-         *   | |                +--------+    |
-         *   | |  timerFired                |
-         *   | |           skipRest           |
-         *   | |                              |
-         *   |
-         *   +-- start/stop (mode == rest) --> rest
+         * State diagram
          *
+         *             start/stop (mode == work)
+         *   +--------------------------------+
+         *   |                                v
+         * +------+   timerFired, start/stop   +------+
+         * | idle | <------------------------- | work |
+         * +------+                            +------+
+         *   |  ^
+         *   |  |   timerFired, start/stop     +------+
+         *   |  +----------------------------- | rest |
+         *   |                                 +------+
+         *   +--------------------------------^
+         *             start/stop (mode == rest)
+         *
+         * A finished interval goes back to idle and flips the mode, so the next
+         * start is the other kind. Nothing starts without the user.
          */
         stateMachine.addRoutes(event: .startStop, transitions: [.idle => .work]) { _ in
             self.mode == .work
@@ -56,18 +56,10 @@ class TBTimer: ObservableObject {
             self.mode == .rest
         }
         stateMachine.addRoutes(event: .startStop, transitions: [.work => .idle, .rest => .idle])
-        stateMachine.addRoutes(event: .timerFired, transitions: [.work => .rest])
-        stateMachine.addRoutes(event: .timerFired, transitions: [.rest => .work])
-        stateMachine.addRoutes(event: .skipRest, transitions: [.rest => .work])
+        stateMachine.addRoutes(event: .timerFired, transitions: [.work => .idle, .rest => .idle])
 
-        /*
-         * "Finish" handlers are called when time interval ended
-         * "End"    handlers are called when time interval ended or was cancelled
-         */
         stateMachine.addAnyHandler(.any => .work, handler: onWorkStart)
-        stateMachine.addAnyHandler(.work => .rest, order: 0, handler: onWorkFinish)
         stateMachine.addAnyHandler(.any => .rest, handler: onRestStart)
-        stateMachine.addAnyHandler(.rest => .work, handler: onRestFinish)
         stateMachine.addAnyHandler(.any => .idle, handler: onIdleStart)
         stateMachine.addAnyHandler(.any => .any, handler: { ctx in
             logger.append(event: TBLogEventTransition(fromContext: ctx))
@@ -117,10 +109,6 @@ class TBTimer: ObservableObject {
 
     func startStop() {
         stateMachine <-! .startStop
-    }
-
-    func skipRest() {
-        stateMachine <-! .skipRest
     }
 
     /// Length in minutes of the interval currently selected by `mode`.
@@ -193,9 +181,9 @@ class TBTimer: ObservableObject {
     }
 
     private func onNotificationAction(action: TBNotification.Action) {
-        if action == .skipRest, stateMachine.state == .rest {
-            skipRest()
-        }
+        guard stateMachine.state == .idle else { return }
+        mode = action == .startRest ? .rest : .work
+        startStop()
     }
 
     private func onWorkStart(context _: TBStateMachine.Context) {
@@ -204,36 +192,35 @@ class TBTimer: ObservableObject {
         startTimer(seconds: workIntervalLength * 60)
     }
 
-    private func onWorkFinish(context _: TBStateMachine.Context) {
-        player.playDing()
-    }
-
-    private func onRestStart(context ctx: TBStateMachine.Context) {
+    private func onRestStart(context _: TBStateMachine.Context) {
         mode = .rest
-        if ctx.fromState == .work {
-            notificationCenter.send(
-                title: NSLocalizedString("TBTimer.onRestStart.title", comment: "Time's up title"),
-                body: NSLocalizedString("TBTimer.onRestStart.body", comment: "Break body"),
-                category: .restStarted
-            )
-        }
         TBStatusItem.shared.setIcon(state: .rest, secondsLeft: TimeInterval(restIntervalLength * 60))
         startTimer(seconds: restIntervalLength * 60)
     }
 
-    private func onRestFinish(context ctx: TBStateMachine.Context) {
-        if ctx.event == .skipRest {
+    private func onIdleStart(context ctx: TBStateMachine.Context) {
+        stopTimer()
+        guard ctx.event == .timerFired else {
+            TBStatusItem.shared.setIcon(state: .idle)
             return
         }
-        notificationCenter.send(
-            title: NSLocalizedString("TBTimer.onRestFinish.title", comment: "Break is over title"),
-            body: NSLocalizedString("TBTimer.onRestFinish.body", comment: "Break is over body"),
-            category: .restFinished
-        )
-    }
-
-    private func onIdleStart(context _: TBStateMachine.Context) {
-        stopTimer()
-        TBStatusItem.shared.setIcon(state: .idle)
+        // An interval ran to completion: ding, notify, blink the menu bar, and offer the other kind next.
+        player.playDing()
+        if ctx.fromState == .work {
+            mode = .rest
+            notificationCenter.send(
+                title: NSLocalizedString("TBTimer.workFinished.title", comment: "Study finished title"),
+                body: NSLocalizedString("TBTimer.workFinished.body", comment: "Study finished body"),
+                category: .workFinished
+            )
+        } else {
+            mode = .work
+            notificationCenter.send(
+                title: NSLocalizedString("TBTimer.restFinished.title", comment: "Rest finished title"),
+                body: NSLocalizedString("TBTimer.restFinished.body", comment: "Rest finished body"),
+                category: .restFinished
+            )
+        }
+        TBStatusItem.shared.setAttention(state: mode == .rest ? .rest : .work, title: mode.label)
     }
 }

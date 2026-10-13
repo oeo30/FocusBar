@@ -6,15 +6,10 @@
 "TBPopoverView.settings.label" = "Settings";
 "TBPopoverView.about.label" = "About";
 "TBPopoverView.quit.label" = "Quit";
-"TBTimer.onRestStart.title" = "Time's up";
-"TBTimer.onRestStart.skip.title" = "Skip";
-"TBTimer.onRestFinish.title" = "Break is over";
-"TBTimer.onRestFinish.body" = "Keep up the good work!";
 "TBPopoverView.timer.label" = "Timer";
 "TBPopoverView.history.label" = "History";
 "TimerView.work.label" = "Study";
 "TimerView.rest.label" = "Rest";
-"TBTimer.onRestStart.body" = "It's time for a break!";
 "HistoryView.summary.prefix" = "Studied ";
 "HistoryView.summary.suffix" = " today";
 "HistoryView.summary.none" = "No study yet today";
@@ -25,3 +20,9 @@
 "SettingsView.workColor.label" = "Study color";
 "SettingsView.restColor.label" = "Rest color";
 "SettingsView.customColor.help" = "Pick a custom color";
+"TBTimer.workFinished.title" = "Study session done";
+"TBTimer.workFinished.body" = "Time for a break. Start it when you're ready.";
+"TBTimer.workFinished.action" = "Start rest";
+"TBTimer.restFinished.title" = "Break is over";
+"TBTimer.restFinished.body" = "Ready for the next study session?";
+"TBTimer.restFinished.action" = "Start study";

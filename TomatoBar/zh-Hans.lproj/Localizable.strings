@@ -6,15 +6,10 @@
 "TBPopoverView.settings.label" = "设置";
 "TBPopoverView.about.label" = "关于";
 "TBPopoverView.quit.label" = "退出";
-"TBTimer.onRestStart.title" = "时间到";
-"TBTimer.onRestStart.skip.title" = "跳过";
-"TBTimer.onRestFinish.title" = "休息结束";
-"TBTimer.onRestFinish.body" = "继续努力!";
 "TBPopoverView.timer.label" = "计时器";
 "TBPopoverView.history.label" = "记录";
 "TimerView.work.label" = "学习";
 "TimerView.rest.label" = "休息";
-"TBTimer.onRestStart.body" = "休息时间到!";
 "HistoryView.summary.prefix" = "今天学习了 ";
 "HistoryView.summary.suffix" = "";
 "HistoryView.summary.none" = "今天还没有学习";
@@ -25,3 +20,9 @@
 "SettingsView.workColor.label" = "学习颜色";
 "SettingsView.restColor.label" = "休息颜色";
 "SettingsView.customColor.help" = "自定义颜色";
+"TBTimer.workFinished.title" = "学习结束";
+"TBTimer.workFinished.body" = "该休息了，准备好后开始休息。";
+"TBTimer.workFinished.action" = "开始休息";
+"TBTimer.restFinished.title" = "休息结束";
+"TBTimer.restFinished.body" = "开始下一次学习吗？";
+"TBTimer.restFinished.action" = "开始学习";

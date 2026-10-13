@@ -2,11 +2,11 @@ import UserNotifications
 
 enum TBNotification {
     enum Category: String {
-        case restStarted, restFinished
+        case workFinished, restFinished
     }
 
     enum Action: String {
-        case skipRest
+        case startRest, startWork
     }
 }
 
@@ -29,24 +29,29 @@ class TBNotificationCenter: NSObject, UNUserNotificationCenterDelegate {
 
         center.delegate = self
 
-        let actionSkipRest = UNNotificationAction(
-            identifier: TBNotification.Action.skipRest.rawValue,
-            title: NSLocalizedString("TBTimer.onRestStart.skip.title", comment: "Skip"),
+        let actionStartRest = UNNotificationAction(
+            identifier: TBNotification.Action.startRest.rawValue,
+            title: NSLocalizedString("TBTimer.workFinished.action", comment: "Start rest"),
             options: []
         )
-        let restStartedCategory = UNNotificationCategory(
-            identifier: TBNotification.Category.restStarted.rawValue,
-            actions: [actionSkipRest],
+        let actionStartWork = UNNotificationAction(
+            identifier: TBNotification.Action.startWork.rawValue,
+            title: NSLocalizedString("TBTimer.restFinished.action", comment: "Start study"),
+            options: []
+        )
+        let workFinishedCategory = UNNotificationCategory(
+            identifier: TBNotification.Category.workFinished.rawValue,
+            actions: [actionStartRest],
             intentIdentifiers: []
         )
         let restFinishedCategory = UNNotificationCategory(
             identifier: TBNotification.Category.restFinished.rawValue,
-            actions: [],
+            actions: [actionStartWork],
             intentIdentifiers: []
         )
 
         center.setNotificationCategories([
-            restStartedCategory,
+            workFinishedCategory,
             restFinishedCategory,
         ])
     }

@@ -186,7 +186,35 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
         statusBarItem?.button?.action = #selector(TBStatusItem.togglePopover(_:))
     }
 
+    // MARK: Attention (blink after an interval ends)
+
+    private var attentionTimer: Timer?
+    private var attentionVisible = false
+
+    /// Blink a capsule naming the next interval until the popover opens or a timer starts.
+    func setAttention(state: TBBarIconState, title: String) {
+        clearAttention()
+        iconState = state
+        iconSecondsLeft = 0
+        iconTitle = title
+        attentionVisible = true
+        redrawIcon()
+        attentionTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.attentionVisible.toggle()
+            self.statusBarItem?.button?.image = self.attentionVisible
+                ? makeBarIcon(state: self.iconState, secondsLeft: 0, title: self.iconTitle)
+                : makeBarIcon(state: .idle, secondsLeft: 0, title: nil)
+        }
+    }
+
+    private func clearAttention() {
+        attentionTimer?.invalidate()
+        attentionTimer = nil
+    }
+
     func setIcon(state: TBBarIconState, secondsLeft: TimeInterval = 0) {
+        clearAttention()
         iconState = state
         iconSecondsLeft = secondsLeft
         iconTitle = nil
@@ -209,6 +237,9 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
     }
 
     func showPopover(_: AnyObject?) {
+        if attentionTimer != nil {
+            setIcon(state: .idle)
+        }
         if let button = statusBarItem?.button {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
             popover.contentViewController?.view.window?.makeKey()
