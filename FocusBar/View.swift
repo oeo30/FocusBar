@@ -358,7 +358,7 @@ private struct SettingsView: View {
 
             Button {
                 NSApp.activate(ignoringOtherApps: true)
-                NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Focus Timer"])
+                NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "FocusBar"])
             } label: {
                 Text(NSLocalizedString("TBPopoverView.about.label",
                                        comment: "About label"))

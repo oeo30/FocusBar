@@ -92,7 +92,7 @@ class TBTimer: ObservableObject {
             print("url handling error: cannot parse url")
             return
         }
-        guard scheme.caseInsensitiveCompare("focustimer") == .orderedSame else {
+        guard scheme.caseInsensitiveCompare("focusbar") == .orderedSame else {
             print("url handling error: unknown scheme \(scheme)")
             return
         }

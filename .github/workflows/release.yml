@@ -19,7 +19,7 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
         run: |
-          xcodebuild -project TomatoBar.xcodeproj -scheme TomatoBar -configuration Release \
+          xcodebuild -project FocusBar.xcodeproj -scheme FocusBar -configuration Release \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
             MARKETING_VERSION="${VERSION#v}" \
@@ -30,11 +30,11 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           cd build/Build/Products/Release
-          codesign --force --deep --sign - "Focus Timer.app"
-          ditto -c -k --keepParent "Focus Timer.app" "Focus-Timer-${VERSION}.zip"
+          codesign --force --deep --sign - "FocusBar.app"
+          ditto -c -k --keepParent "FocusBar.app" "FocusBar-${VERSION}.zip"
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/Build/Products/Release/Focus-Timer-*.zip
+          files: build/Build/Products/Release/FocusBar-*.zip
           generate_release_notes: true

@@ -149,16 +149,18 @@ private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title
     return image
 }
 
-/// Settings written while the app was still TomatoBar live under its old bundle id; copy them once.
+/// Settings written under the app's earlier bundle ids (Focus Timer, TomatoBar) are copied once.
 private func migrateLegacyDefaults() {
     let defaults = UserDefaults.standard
-    let marker = "didMigrateTomatoBarDefaults"
-    guard !defaults.bool(forKey: marker),
-          let legacy = UserDefaults(suiteName: "com.github.ivoronin.TomatoBar") else { return }
-    for key in ["workIntervalLength", "shortRestIntervalLength", "showTimerInMenuBar", "dingVolume", "workColor", "restColor"]
-        where defaults.object(forKey: key) == nil {
-        if let value = legacy.object(forKey: key) {
-            defaults.set(value, forKey: key)
+    let marker = "didMigrateLegacyDefaults"
+    guard !defaults.bool(forKey: marker) else { return }
+    let keys = ["workIntervalLength", "shortRestIntervalLength", "showTimerInMenuBar", "dingVolume", "workColor", "restColor"]
+    for suite in ["com.github.oeo30.FocusTimer", "com.github.ivoronin.TomatoBar"] {
+        guard let legacy = UserDefaults(suiteName: suite) else { continue }
+        for key in keys where defaults.object(forKey: key) == nil {
+            if let value = legacy.object(forKey: key) {
+                defaults.set(value, forKey: key)
+            }
         }
     }
     defaults.set(true, forKey: marker)

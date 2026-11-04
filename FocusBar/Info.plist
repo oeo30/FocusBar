@@ -10,10 +10,10 @@
 			<key>CFBundleURLIconFile</key>
 			<string></string>
 			<key>CFBundleURLName</key>
-			<string>com.github.oeo30.FocusTimer</string>
+			<string>com.github.oeo30.FocusBar</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>focustimer</string>
+				<string>focusbar</string>
 			</array>
 		</dict>
 	</array>

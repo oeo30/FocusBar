@@ -26,20 +26,21 @@ class TBLogEventTransition: TBLogEvent {
     }
 }
 
-private let logFileName = "FocusTimer.log"
+private let logFileName = "FocusBar.log"
 private let lineEnd = "\n".data(using: .utf8)!
 
-/// Application Support/Focus Timer/FocusTimer.log. Earlier builds wrote
-/// Application Support/TomatoBar/TomatoBar.log, and TomatoBar itself used Caches;
+/// Application Support/FocusBar/FocusBar.log. Earlier builds wrote to
+/// "Focus Timer" or "TomatoBar" folders, and TomatoBar itself used Caches;
 /// whichever exists is moved over once so history carries across.
 private func logFileURL() -> URL {
     let fileManager = FileManager.default
     let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-    let dir = appSupport.appendingPathComponent("Focus Timer", isDirectory: true)
+    let dir = appSupport.appendingPathComponent("FocusBar", isDirectory: true)
     try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
     let url = dir.appendingPathComponent(logFileName)
 
     let legacyCandidates = [
+        appSupport.appendingPathComponent("Focus Timer/FocusTimer.log"),
         appSupport.appendingPathComponent("TomatoBar/TomatoBar.log"),
         fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("TomatoBar.log"),
     ]
