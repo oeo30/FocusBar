@@ -4,7 +4,7 @@
 
 <h1 align="center">FocusBar</h1>
 
-<p align="center">macOS 메뉴바에서 쓰는 집중/휴식 타이머</p>
+<p align="center">macOS 메뉴바 뽀모도로 타이머</p>
 
 ## 기능
 
@@ -19,8 +19,8 @@
 
 ## 설치
 
-1. [Releases](../../releases)에서 최신 `FocusBar-*.zip`을 받아 압축을 풉니다.
-2. **FocusBar.app**을 `/Applications`로 옮깁니다.
+1. [Releases](../../releases)에서 최신 `FocusBar-*.dmg`를 받아 엽니다. (zip도 함께 제공합니다.)
+2. 열린 창에서 **FocusBar**를 **Applications** 폴더로 끌어다 놓습니다.
 3. 공증되지 않은 앱이라 처음 실행할 때는 앱을 **우클릭 → 열기**로 실행하고 확인을 눌러야 합니다. 또는 터미널에서 한 번만 아래 명령을 실행해도 됩니다.
 
 ```bash

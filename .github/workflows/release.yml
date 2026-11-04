@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,26 +16,71 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Version from tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          else
+            echo "VERSION=0.0.0-dev" >> "$GITHUB_ENV"
+          fi
+
       - name: Build
-        env:
-          VERSION: ${{ github.ref_name }}
         run: |
           xcodebuild -project FocusBar.xcodeproj -scheme FocusBar -configuration Release \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
-            MARKETING_VERSION="${VERSION#v}" \
+            MARKETING_VERSION="$VERSION" \
             build
 
       - name: Ad-hoc sign and zip
-        env:
-          VERSION: ${{ github.ref_name }}
         run: |
           cd build/Build/Products/Release
-          codesign --force --deep --sign - "FocusBar.app"
-          ditto -c -k --keepParent "FocusBar.app" "FocusBar-${VERSION}.zip"
+          codesign --force --deep --sign - FocusBar.app
+          ditto -c -k --keepParent FocusBar.app "FocusBar-v${VERSION}.zip"
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Build DMG
+        run: |
+          cd build/Build/Products/Release
+          # Volume icon from the app icon set (file names already follow iconutil's convention)
+          mkdir -p FocusBar.iconset
+          cp "$GITHUB_WORKSPACE"/FocusBar/Assets.xcassets/AppIcon.appiconset/icon_*.png FocusBar.iconset/
+          iconutil -c icns FocusBar.iconset
+          # Retina-aware background
+          tiffutil -cathidpicheck "$GITHUB_WORKSPACE/Packaging/dmg-background.png" \
+            "$GITHUB_WORKSPACE/Packaging/dmg-background@2x.png" -out dmg-background.tiff
+          rm -rf dmg-src && mkdir dmg-src && cp -R FocusBar.app dmg-src/
+          create-dmg \
+            --volname "FocusBar" \
+            --volicon FocusBar.icns \
+            --background dmg-background.tiff \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 128 \
+            --icon FocusBar.app 150 190 \
+            --hide-extension FocusBar.app \
+            --app-drop-link 450 190 \
+            --no-internet-enable \
+            "FocusBar-v${VERSION}.dmg" dmg-src \
+            || test -f "FocusBar-v${VERSION}.dmg"
+          ls -la "FocusBar-v${VERSION}.dmg"
+
+      - name: Upload artifacts (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FocusBar-dev
+          path: |
+            build/Build/Products/Release/FocusBar-v*.zip
+            build/Build/Products/Release/FocusBar-v*.dmg
 
       - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/Build/Products/Release/FocusBar-*.zip
+          files: |
+            build/Build/Products/Release/FocusBar-v*.dmg
+            build/Build/Products/Release/FocusBar-v*.zip
           generate_release_notes: true
