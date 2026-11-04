@@ -24,5 +24,5 @@
 "TBTimer.workFinished.body" = "휴식할 시간이에요. 준비되면 휴식을 시작하세요.";
 "TBTimer.workFinished.action" = "휴식 시작";
 "TBTimer.restFinished.title" = "휴식 끝";
-"TBTimer.restFinished.body" = "다음 집중를 시작할까요?";
+"TBTimer.restFinished.body" = "다음 집중을 시작할까요?";
 "TBTimer.restFinished.action" = "집중 시작";
