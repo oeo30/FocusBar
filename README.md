@@ -1,45 +1,57 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/ivoronin/TomatoBar/main/TomatoBar/Assets.xcassets/AppIcon.appiconset/icon_128x128%402x.png" width="128" height="128"/>
-<p>
- 
-<h1 align="center">TomatoBar</h1>
-<p align="center">
-<img src="https://img.shields.io/github/actions/workflow/status/ivoronin/TomatoBar/main.yml?branch=main"/> <img src="https://img.shields.io/github/downloads/ivoronin/TomatoBar/total"/> <img src="https://img.shields.io/github/v/release/ivoronin/TomatoBar?display_name=tag"/> <img src="https://img.shields.io/homebrew/cask/v/tomatobar"/>
+  <img src="TomatoBar/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="128" alt="Focus Timer icon">
 </p>
 
-<img
-  src="https://github.com/ivoronin/TomatoBar/raw/main/screenshot.png?raw=true"
-  alt="Screenshot"
-  width="50%"
-  align="right"
-/>
+<h1 align="center">Focus Timer</h1>
 
-## Overview
-Have you ever heard of Pomodoro? It’s a great technique to help you keep track of time and stay on task during your studies or work. Read more about it on <a href="https://en.wikipedia.org/wiki/Pomodoro_Technique">Wikipedia</a>.
+<p align="center">A small focus/rest timer that lives in the macOS menu bar.</p>
 
-TomatoBar is world's neatest Pomodoro timer for the macOS menu bar. All the essential features are here - configurable
-work and rest intervals, optional sounds, discreet actionable notifications, global hotkey.
+## What it does
 
-TomatoBar is fully sandboxed with no entitlements.
+- **Dial timer.** Pick a focus or rest length by dragging a 60‑minute dial, in 5‑minute steps.
+- **Menu bar countdown.** While running, the menu bar shows a capsule with a shrinking pie and the time left. Idle, it shows a small dial wound to 45 minutes.
+- **You decide when to switch.** When a session ends the timer stops, plays a ding, posts a notification with a one‑tap *Start rest* / *Start focus* action, and blinks the menu bar until you react. Nothing starts on its own.
+- **History.** Today's focus total and the list of sessions. A day runs from 06:00 to 05:59; sessions under 5 minutes are ignored.
+- **Your colors.** Focus and rest colors are configurable and apply to the dial, the menu bar and the history card.
+- **Launch at login**, **optional menu bar countdown**, **ding volume**.
 
-Download the latest release <a href="https://github.com/ivoronin/TomatoBar/releases/latest/">here</a> or install using Homebrew:
+English and Korean interface, following the system language.
+
+## Install
+
+1. Download the latest `Focus-Timer-*.zip` from [Releases](../../releases) and unzip it.
+2. Move **Focus Timer.app** to `/Applications`.
+3. The app is not notarized. On first launch, right‑click the app and choose **Open**, then confirm. (Or run `xattr -d com.apple.quarantine "/Applications/Focus Timer.app"` once.)
+
+Requires macOS 11 or later.
+
+## Build from source
+
+```bash
+git clone https://github.com/oeo30/TomatoBar.git
+cd TomatoBar
+xcodebuild -project TomatoBar.xcodeproj -scheme TomatoBar -configuration Release \
+  -derivedDataPath build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build
+open "build/Build/Products/Release/Focus Timer.app"
 ```
-brew install --cask tomatobar
+
+Or open `TomatoBar.xcodeproj` in Xcode and run the `TomatoBar` scheme.
+
+## Automation
+
+The timer can be toggled from the command line or Shortcuts:
+
+```bash
+open focustimer://startStop
 ```
 
-If the app doesn't start, install using the `--no-quarantine` flag:
-```
-brew install --cask --no-quarantine tomatobar
-```
+## Credits
 
-## Integration with other tools
-### Event log
-TomatoBar logs state transitions in JSON format to `~/Library/Containers/com.github.ivoronin.TomatoBar/Data/Library/Caches/TomatoBar.log`. Use this data to analyze your productivity and enrich other data sources.
-### Starting and stopping the timer
-TomatoBar can be controlled using `tomatobar://` URLs. To start or stop the timer from the command line, use `open tomatobar://startStop`.
+Focus Timer is a reworked fork of [TomatoBar](https://github.com/ivoronin/TomatoBar) by Ilya Voronin.
+The timer sound is licensed from [buddhabeats](https://www.buddhabeats.net/).
 
-## Older versions
-Touch bar integration and older macOS versions (earlier than Big Sur) are supported by TomatoBar versions prior to 3.0
+Dependencies: [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin), [SwiftState](https://github.com/ReactKit/SwiftState).
 
-## Licenses
- - Timer sounds are licensed from buddhabeats
+## License
+
+MIT. See [LICENSE](LICENSE). Copyright © 2022–2023 Ilya Voronin, © 2026 oeo30.

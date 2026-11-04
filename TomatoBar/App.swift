@@ -149,12 +149,28 @@ private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title
     return image
 }
 
+/// Settings written while the app was still TomatoBar live under its old bundle id; copy them once.
+private func migrateLegacyDefaults() {
+    let defaults = UserDefaults.standard
+    let marker = "didMigrateTomatoBarDefaults"
+    guard !defaults.bool(forKey: marker),
+          let legacy = UserDefaults(suiteName: "com.github.ivoronin.TomatoBar") else { return }
+    for key in ["workIntervalLength", "shortRestIntervalLength", "showTimerInMenuBar", "dingVolume", "workColor", "restColor"]
+        where defaults.object(forKey: key) == nil {
+        if let value = legacy.object(forKey: key) {
+            defaults.set(value, forKey: key)
+        }
+    }
+    defaults.set(true, forKey: marker)
+}
+
 @main
 struct TBApp: App {
     @NSApplicationDelegateAdaptor(TBStatusItem.self) var appDelegate
 
     init() {
         TBStatusItem.shared = appDelegate
+        migrateLegacyDefaults()
         LaunchAtLogin.migrateIfNeeded()
         logger.append(event: TBLogEventAppStart())
     }
@@ -182,6 +198,7 @@ class TBStatusItem: NSObject, NSApplicationDelegate {
         let view = TBPopoverView()
 
         popover.behavior = .transient
+        popover.animates = false
         popover.contentViewController = NSViewController()
         popover.contentViewController?.view = TBPopoverHostingView(rootView: view)
         if let contentViewController = popover.contentViewController {

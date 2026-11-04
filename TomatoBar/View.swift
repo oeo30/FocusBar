@@ -1,10 +1,5 @@
-import KeyboardShortcuts
 import LaunchAtLogin
 import SwiftUI
-
-extension KeyboardShortcuts.Name {
-    static let startStopTimer = Self("startStopTimer")
-}
 
 private let popoverWidth: CGFloat = 240
 private let sessionListHeight: CGFloat = 154

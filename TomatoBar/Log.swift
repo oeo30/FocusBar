@@ -26,25 +26,25 @@ class TBLogEventTransition: TBLogEvent {
     }
 }
 
-private let logFileName = "TomatoBar.log"
+private let logFileName = "FocusTimer.log"
 private let lineEnd = "\n".data(using: .utf8)!
 
-/// Application Support/TomatoBar/TomatoBar.log. Older versions kept the log in Caches,
-/// which the system may purge, so an existing cache file is moved over once.
+/// Application Support/Focus Timer/FocusTimer.log. Earlier builds wrote
+/// Application Support/TomatoBar/TomatoBar.log, and TomatoBar itself used Caches;
+/// whichever exists is moved over once so history carries across.
 private func logFileURL() -> URL {
     let fileManager = FileManager.default
-    let dir = fileManager
-        .urls(for: .applicationSupportDirectory, in: .userDomainMask)
-        .first!
-        .appendingPathComponent("TomatoBar", isDirectory: true)
+    let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+    let dir = appSupport.appendingPathComponent("Focus Timer", isDirectory: true)
     try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
     let url = dir.appendingPathComponent(logFileName)
 
-    let legacy = fileManager
-        .urls(for: .cachesDirectory, in: .userDomainMask)
-        .first!
-        .appendingPathComponent(logFileName)
-    if !fileManager.fileExists(atPath: url.path), fileManager.fileExists(atPath: legacy.path) {
+    let legacyCandidates = [
+        appSupport.appendingPathComponent("TomatoBar/TomatoBar.log"),
+        fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("TomatoBar.log"),
+    ]
+    if !fileManager.fileExists(atPath: url.path),
+       let legacy = legacyCandidates.first(where: { fileManager.fileExists(atPath: $0.path) }) {
         try? fileManager.moveItem(at: legacy, to: url)
     }
     return url

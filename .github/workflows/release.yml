@@ -1,0 +1,40 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          xcodebuild -project TomatoBar.xcodeproj -scheme TomatoBar -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            MARKETING_VERSION="${VERSION#v}" \
+            build
+
+      - name: Ad-hoc sign and zip
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          cd build/Build/Products/Release
+          codesign --force --deep --sign - "Focus Timer.app"
+          ditto -c -k --keepParent "Focus Timer.app" "Focus-Timer-${VERSION}.zip"
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/Build/Products/Release/Focus-Timer-*.zip
+          generate_release_notes: true

@@ -1,4 +1,3 @@
-import KeyboardShortcuts
 import SwiftState
 import SwiftUI
 
@@ -71,7 +70,6 @@ class TBTimer: ObservableObject {
         timerFormatter.allowedUnits = [.minute, .second]
         timerFormatter.zeroFormattingBehavior = .pad
 
-        KeyboardShortcuts.onKeyUp(for: .startStopTimer, action: startStop)
         notificationCenter.setActionHandler(handler: onNotificationAction)
 
         let aem: NSAppleEventManager = NSAppleEventManager.shared()
@@ -94,7 +92,7 @@ class TBTimer: ObservableObject {
             print("url handling error: cannot parse url")
             return
         }
-        guard scheme.caseInsensitiveCompare("tomatobar") == .orderedSame else {
+        guard scheme.caseInsensitiveCompare("focustimer") == .orderedSame else {
             print("url handling error: unknown scheme \(scheme)")
             return
         }
