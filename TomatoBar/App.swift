@@ -6,7 +6,7 @@ enum TBBarIconState {
 
     var color: NSColor {
         switch self {
-        case .idle: return .clear
+        case .idle: return NSColor(white: 0.2, alpha: 1) // static 45-minute wedge while idle
         case .work: return TBTheme.shared.workColor
         case .rest: return TBTheme.shared.restColor
         }
@@ -85,8 +85,8 @@ private func drawPie(in rect: NSRect, state: TBBarIconState, secondsLeft: TimeIn
         disc.stroke()
     }
 
-    guard state != .idle else { return }
-    let fraction = min(max(secondsLeft / clockFaceSeconds, 0), 1)
+    // Idle shows a pomodoro timer wound to 45 minutes; running shows the time left.
+    let fraction = state == .idle ? 0.75 : min(max(secondsLeft / clockFaceSeconds, 0), 1)
     guard fraction > 0 else { return }
 
     let wedge = NSBezierPath()
@@ -98,7 +98,7 @@ private func drawPie(in rect: NSRect, state: TBBarIconState, secondsLeft: TimeIn
     wedge.fill()
 }
 
-/// Menu bar image: an empty white disc while idle, the pie alone, or a capsule in the state color
+/// Menu bar image: a white disc with a gray 45-minute wedge while idle, the pie alone, or a capsule in the state color
 /// wrapping the pie and the time.
 /// `inverted` swaps the capsule to a white fill with colored text and ring, used for blinking.
 private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title: String?, inverted: Bool = false) -> NSImage {
