@@ -363,7 +363,16 @@ private struct SettingsView: View {
 
             Button {
                 NSApp.activate(ignoringOtherApps: true)
-                NSApp.orderFrontStandardAboutPanel()
+                let credits = NSMutableAttributedString(
+                    string: "Based on TomatoBar by Ilya Voronin (MIT License)\nhttps://github.com/ivoronin/TomatoBar",
+                    attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
+                let paragraph = NSMutableParagraphStyle()
+                paragraph.alignment = .center
+                credits.addAttribute(.paragraphStyle, value: paragraph, range: NSRange(location: 0, length: credits.length))
+                NSApp.orderFrontStandardAboutPanel(options: [
+                    .applicationName: "Focus Timer",
+                    .credits: credits,
+                ])
             } label: {
                 Text(NSLocalizedString("TBPopoverView.about.label",
                                        comment: "About label"))
