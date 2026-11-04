@@ -98,13 +98,10 @@ private func drawPie(in rect: NSRect, state: TBBarIconState, secondsLeft: TimeIn
     wedge.fill()
 }
 
-/// Menu bar image: the tomato logo while idle, the pie alone, or a capsule in the state color
+/// Menu bar image: an empty white disc while idle, the pie alone, or a capsule in the state color
 /// wrapping the pie and the time.
 /// `inverted` swaps the capsule to a white fill with colored text and ring, used for blinking.
 private func makeBarIcon(state: TBBarIconState, secondsLeft: TimeInterval, title: String?, inverted: Bool = false) -> NSImage {
-    if state == .idle, let logo = NSImage(named: "BarIconIdle") {
-        return logo
-    }
     guard let title = title, !title.isEmpty else {
         let image = NSImage(size: NSSize(width: pieSize, height: pieSize), flipped: false) { rect in
             drawPie(in: rect, state: state, secondsLeft: secondsLeft, outlined: true)
